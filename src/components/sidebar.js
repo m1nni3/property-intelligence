@@ -3,34 +3,34 @@ export function renderSidebar(currentPage) {
     {
       heading: "Dashboards",
       links: [
-        { href: "index.html", label: "Analytics", icon: "fa-solid fa-chart-pie", page: "index" },
+        { href: "", label: "Analytics", icon: "fa-solid fa-chart-pie", page: "index" },
       ],
     },
     {
       heading: "Core Data",
       links: [
-        { href: "properties.html", label: "Properties", icon: "fa-solid fa-building", page: "properties" },
-        { href: "contacts.html", label: "Contacts", icon: "fa-solid fa-address-book", page: "contacts" },
-        { href: "suppliers.html", label: "Suppliers", icon: "fa-solid fa-truck", page: "suppliers" },
+        { href: "properties", label: "Properties", icon: "fa-solid fa-building", page: "properties" },
+        { href: "contacts", label: "Contacts", icon: "fa-solid fa-address-book", page: "contacts" },
+        { href: "suppliers", label: "Suppliers", icon: "fa-solid fa-truck", page: "suppliers" },
       ],
     },
     {
       heading: "Financial",
       links: [
-        { href: "invoices.html", label: "Invoices", icon: "fa-solid fa-file-invoice-dollar", page: "invoices" },
+        { href: "invoices", label: "Invoices", icon: "fa-solid fa-file-invoice-dollar", page: "invoices" },
       ],
     },
     {
       heading: "Operations",
       links: [
-        { href: "maintenance.html", label: "Maintenance", icon: "fa-solid fa-wrench", page: "maintenance" },
-        { href: "documents.html", label: "Documents", icon: "fa-solid fa-file-lines", page: "documents" },
+        { href: "maintenance", label: "Maintenance", icon: "fa-solid fa-wrench", page: "maintenance" },
+        { href: "documents", label: "Documents", icon: "fa-solid fa-file-lines", page: "documents" },
       ],
     },
     {
       heading: "Integrations",
       links: [
-        { href: "data-sources.html", label: "Data Sources", icon: "fa-solid fa-plug", page: "data-sources" },
+        { href: "data-sources", label: "Data Sources", icon: "fa-solid fa-plug", page: "data-sources" },
       ],
     },
   ];
@@ -42,7 +42,7 @@ export function renderSidebar(currentPage) {
         ? `sidebar-link ${isActive ? "active" : ""}`
         : `sidebar-link sidebar-link-sub ${isActive ? "active" : ""}`;
       const indent = depth > 0 ? "ml-6" : "";
-      return `<a href="/production/${l.href}" class="${cls} ${indent}"><i class="${l.icon} w-5 text-center text-sm"></i>${l.label}</a>`;
+      return `<a href="/${l.href}" class="${cls} ${indent}"><i class="${l.icon} w-5 text-center text-sm"></i>${l.label}</a>`;
     }).join("");
   }
 

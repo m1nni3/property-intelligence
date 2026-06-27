@@ -11,50 +11,53 @@ export async function handleApiRequest(request: Request, env: Env): Promise<Resp
       return json({ status: "ok", environment: env.ENVIRONMENT });
     }
 
-    return routeProperties(path, method, request, env);
+    return routeEntities(path, method, request, env);
   } catch (e) {
     return error(e instanceof Error ? e.message : "Internal error", 500);
   }
 }
 
-async function routeProperties(
+async function routeEntities(
   path: string,
   method: string,
   request: Request,
   env: Env,
 ): Promise<Response> {
-  const match = path.match(/^\/properties(?:\/([^/]+))?(?:\/([^/]+))?$/);
+  const match = path.match(/^\/(properties|suppliers|contacts|invoices|maintenance|documents|data-sources)(?:\/([^/]+))?(?:\/([^/]+))?$/);
 
   if (!match) {
     return notFound(`Unknown route: ${path}`);
   }
 
-  const id = match[1];
-  const sub = match[2];
+  const entity = match[1];
+  const id = match[2];
+  const sub = match[3];
 
   if (!id) {
-    if (method === "GET") return listProperties(env);
-    if (method === "POST") return createProperty(request, env);
+    if (method === "GET") return listEntities(entity, env);
+    if (method === "POST") return createEntity(entity, request, env);
     return error("Method not allowed", 405);
   }
 
   if (!sub) {
-    if (method === "GET") return getProperty(id, env);
-    if (method === "PATCH") return updateProperty(id, request, env);
-    if (method === "DELETE") return deleteProperty(id, env);
+    if (method === "GET") return getEntity(entity, id, env);
+    if (method === "PATCH") return updateEntity(entity, id, request, env);
+    if (method === "DELETE") return deleteEntity(entity, id, env);
     return error("Method not allowed", 405);
   }
 
-  if (sub === "contacts") {
-    if (method === "GET") return listPropertyContacts(id, env);
-    if (method === "POST") return addPropertyContact(id, request, env);
-    return error("Method not allowed", 405);
-  }
-
-  if (sub === "files") {
-    if (method === "GET") return listPropertyFiles(id, env);
-    if (method === "POST") return uploadPropertyFile(id, request, env);
-    return error("Method not allowed", 405);
+  // Handle sub-entities for properties
+  if (entity === "properties") {
+    if (sub === "contacts") {
+      if (method === "GET") return listPropertyContacts(id, env);
+      if (method === "POST") return addPropertyContact(id, request, env);
+      return error("Method not allowed", 405);
+    }
+    if (sub === "files") {
+      if (method === "GET") return listPropertyFiles(id, env);
+      if (method === "POST") return uploadPropertyFile(id, request, env);
+      return error("Method not allowed", 405);
+    }
   }
 
   return notFound();
@@ -85,13 +88,98 @@ async function createProperty(request: Request, env: Env): Promise<Response> {
   return json(row, 201);
 }
 
-async function getProperty(id: string, env: Env): Promise<Response> {
-  const row = await env.DB.prepare("SELECT * FROM properties WHERE id = ?").bind(id).first();
-  if (!row) return notFound("Property not found");
-  return json(row);
-}
+  async function getEntity(entity: string, id: string, env: Env): Promise<Response> {
+    const table = entity === "properties" ? "properties" :
+                  entity === "suppliers" ? "suppliers" :
+                  entity === "contacts" ? "contacts" :
+                  entity === "invoices" ? "invoices" :
+                  entity === "maintenance" ? "maintenance" :
+                  entity === "documents" ? "documents" : "data_sources";
+    const row = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
+    if (!row) return notFound(`${entity} not found`);
+    return json(row);
+  }
 
-async function updateProperty(id: string, request: Request, env: Env): Promise<Response> {
+  async function updateEntity(entity: string, id: string, request: Request, env: Env): Promise<Response> {
+    const body = await request.json<Record<string, unknown>>();
+    const table = entity === "properties" ? "properties" :
+                  entity === "suppliers" ? "suppliers" :
+                  entity === "contacts" ? "contacts" :
+                  entity === "invoices" ? "invoices" :
+                  entity === "maintenance" ? "maintenance" :
+                  entity === "documents" ? "documents" : "data_sources";
+    const columns = Object.keys(body);
+    const placeholders = columns.map(() => "?").join(", ");
+    const updateSql = `UPDATE ${table} SET ${columns.map(col => `${col} = ?`).join(", ")} WHERE id = ?`;
+    const values = [...Object.values(body), id];
+
+    const existing = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
+    if (!existing) return notFound(`${entity} not found`);
+
+    await env.DB.prepare(updateSql).bind(...values).run();
+    const row = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
+    return json(row);
+  }
+
+  async function deleteEntity(entity: string, id: string, env: Env): Promise<Response> {
+    const table = entity === "properties" ? "properties" :
+                  entity === "suppliers" ? "suppliers" :
+                  entity === "contacts" ? "contacts" :
+                  entity === "invoices" ? "invoices" :
+                  entity === "maintenance" ? "maintenance" :
+                  entity === "documents" ? "documents" : "data_sources";
+    const existing = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
+    if (!existing) return notFound(`${entity} not found`);
+
+    await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
+    return json({ deleted: true });
+  }
+
+  async function listEntities(entity: string, env: Env): Promise<Response> {
+    const table = entity === "properties" ? "properties" :
+                  entity === "suppliers" ? "suppliers" :
+                  entity === "contacts" ? "contacts" :
+                  entity === "invoices" ? "invoices" :
+                  entity === "maintenance" ? "maintenance" :
+                  entity === "documents" ? "documents" : "data_sources";
+    const rows = await env.DB.prepare(`SELECT * FROM ${table} ORDER BY created_at DESC`).all();
+    return json(rows.results);
+  }
+
+  async function createEntity(entity: string, request: Request, env: Env): Promise<Response> {
+    let body: Record<string, unknown> = {};
+
+    const contentType = request.headers.get("content-type");
+    if (contentType?.includes("application/json")) {
+      body = await request.json();
+    } else if (contentType?.includes("application/x-www-form-urlencoded")) {
+      const formData = await request.formData();
+      formData.forEach((value, key) => {
+        body[key] = value;
+      });
+    } else {
+      return error("Unsupported content type", 415);
+    }
+
+    const id = uuid();
+    const table = entity === "properties" ? "properties" :
+                  entity === "suppliers" ? "suppliers" :
+                  entity === "contacts" ? "contacts" :
+                  entity === "invoices" ? "invoices" :
+                  entity === "maintenance" ? "maintenance" :
+                  entity === "documents" ? "documents" : "data_sources";
+
+    const columns = Object.keys(body);
+    const placeholders = columns.map(() => "?").join(", ");
+    const insertSql = `INSERT INTO ${table} (id, ${columns.join(", ")}) VALUES (?, ${placeholders})`;
+    const values = [id, ...Object.values(body)];
+
+    await env.DB.prepare(insertSql).bind(...values).run();
+    const row = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
+    return json(row, 201);
+  }
+
+  async function getProperty(id: string, env: Env): Promise<Response> {
   const body = await request.json<{
     name?: string;
     address?: string;
