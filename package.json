@@ -7,7 +7,7 @@
     "dev": "concurrently -k -n web,api -c cyan,magenta \"vite --clearScreen false\" \"node server/index.js\"",
     "dev:api": "node server/index.js",
     "dev:web": "vite --clearScreen false",
-    "build": "NODE_ENV=production vite build",
+    "build": "NODE_ENV=production vite build && cp -r dist/production/* dist/ && rm -rf dist/production",
     "deploy": "npm run build && wrangler deploy",
     "db:init": "node server/init-db.js",
     "lint": "eslint src/ server/",
@@ -35,9 +35,9 @@
     "wrangler": "^4.105.0"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.0.0",
+    "@tailwindcss/vite": "^4.3.0",
     "pdf-parse": "^2.4.5",
-    "tailwindcss": "^4.0.0",
+    "tailwindcss": "^4.3.0",
     "tesseract.js": "^7.0.0"
   }
 }
