@@ -4,6 +4,8 @@
 interface __BaseEnv_Env {
 	FILES: R2Bucket;
 	DB: D1Database;
+	FINANCE_DB: D1Database;
+	PROPERTY_KV: KVNamespace;
 	ASSETS: Fetcher;
 	ENVIRONMENT: string;
 }

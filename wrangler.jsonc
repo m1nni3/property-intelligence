@@ -5,8 +5,19 @@
   "compatibility_date": "2026-06-25",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
-    "enabled": true,
-    "head_sampling_rate": 1
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
   },
   "assets": {
     "directory": "./dist",
@@ -15,11 +26,24 @@
     "html_handling": "auto-trailing-slash",
     "run_worker_first": ["/api/*"]
   },
+  "kv_namespaces": [
+    {
+      "binding": "PROPERTY_KV",
+      "id": "c26f94acabe345e29c9cc6a7742613b2",
+      "title": "property-details-kv"
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "property-intelligence-db",
-      "database_id": "",
+      "database_id": "4ea83d84-1ae6-4549-88d2-bde1e1c5af4d",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "FINANCE_DB",
+      "database_name": "property-intelligence-finance",
+      "database_id": "7356aabe-ffe5-4e33-9ced-4ccd70ce07f4",
       "migrations_dir": "migrations"
     }
   ],
@@ -30,6 +54,6 @@
     }
   ],
   "vars": {
-    "ENVIRONMENT": "development"
+    "ENVIRONMENT": "production"
   }
 }
