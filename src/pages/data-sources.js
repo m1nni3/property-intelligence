@@ -84,7 +84,7 @@ function showForm(src) {
   };
 }
 
-async function loadRuns() { try { runs = await get("/sync-runs"); renderRuns(); } catch (e) {} }
+async function loadRuns() { runs = await get("/sync-runs"); renderRuns(); }
 async function load() {
   try { sources = await get("/data-sources"); render(); loadRuns(); }
   catch (e) { toast(e.message, "error"); }
