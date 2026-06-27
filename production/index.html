@@ -1,36 +1,167 @@
+// The standard index.html for the property intelligence platform
 <!DOCTYPE html>
-<html lang="en" class="bg-slate-900 text-slate-100">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — Property Intelligence</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/src/style.css">
+  <title>Property Intel - Dashboard</title>
+  <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="min-h-screen flex">
-  <div id="sidebar"></div>
-  <main class="flex-1 ml-60 p-6 lg:p-8 min-h-screen">
-    <div class="app-page-title">
-      <div class="page-title-wrapper">
-        <div class="page-title-heading">
-          <div class="page-title-icon"><i class="fa-solid fa-chart-pie"></i></div>
-          <div>
-            <div class="page-title-text">Dashboard</div>
-            <div class="page-title-subheading">Platform overview at a glance</div>
+<body>
+  <main class="main-wrapper">
+    <div class="sidebar-container">
+      <div id="sidebar"></div>
+    </div>
+    <div class="content-area">
+      <div id="index-container">
+        <div class="flex flex-col flex-1 min-h-0">
+          <div class="flex items-start justify-between shrink-0">
+            <div>
+              <h2 class="page-title">Analytics Dashboard</h2>
+              <p class="page-sub">Portfolio-wide performance and insights</p>
+            </div>
+          </div>
+          <div class="flex-1 min-h-0 overflow-y-auto mt-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              <div class="kpi-card border-t-pomp-blue">
+                <p class="text-gray-500 text-xs uppercase">Total Properties</p>
+                <p class="text-xl font-bold text-pomp-navy">12</p>
+                <p class="text-xs text-green-600 mt-1">+2 from last month</p>
+              </div>
+              <div class="kpi-card border-t-green-500">
+                <p class="text-gray-500 text-xs uppercase">Monthly Income</p>
+                <p class="text-xl font-bold text-green-600">R45,230</p>
+                <p class="text-xs text-green-600 mt-1">+12% from last month</p>
+              </div>
+              <div class="kpi-card border-t-red-500">
+                <p class="text-gray-500 text-xs uppercase">Monthly Expenses</p>
+                <p class="text-xl font-bold text-red-600">R28,940</p>
+                <p class="text-xs text-red-600 mt-1">+5% from last month</p>
+              </div>
+              <div class="kpi-card border-t-pomp-blue">
+                <p class="text-gray-500 text-xs uppercase">Net Profit</p>
+                <p class="text-xl font-bold text-pomp-blue">R16,290</p>
+                <p class="text-xs text-green-600 mt-1">+18% from last month</p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="bg-white rounded-card shadow-card p-4 h-full">
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Recent Activity</h4>
+                <div class="space-y-2">
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 rounded-full bg-pomp-blue mt-1.5 shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-800">Property maintenance completed</p>
+                      <p class="text-xs text-gray-400">Oakdale - 2 hours ago</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 rounded-full bg-green-500 mt-1.5 shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-800">Rent payment received</p>
+                      <p class="text-xs text-gray-400">Indaba - 5 hours ago</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-800">Maintenance invoice issued</p>
+                      <p class="text-xs text-gray-400">Malindi - 1 day ago</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-card shadow-card p-4 h-full">
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Tasks Due This Week</h4>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-red-500 shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-800">Prepare monthly report</p>
+                      <p class="text-xs text-gray-400">Due: Today</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-orange-500 shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-800">Contact tenant about inspection</p>
+                      <p class="text-xs text-gray-400">Due: Tomorrow</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-800">Review vendor proposals</p>
+                      <p class="text-xs text-gray-400">Due: Friday</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="kpi-grid"></div>
-    <div class="main-card">
-      <div class="card-header">
-        <span><i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-2"></i>Recent Activity</span>
-      </div>
-      <div class="card-body" id="recent-activity">
-        <div class="skeleton h-20 w-full"></div>
-      </div>
-    </div>
   </main>
-  <script type="module" src="/src/pages/dashboard.js"></script>
+  
+  <script type="module">
+    import { renderSidebar } from "./components/sidebar.js";
+    
+    const currentPath = window.location.pathname;
+    const pageName = currentPath.startsWith('/') ? 'index' : 'index';
+    
+    document.getElementById('sidebar').innerHTML = renderSidebar(pageName);
+    
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        window.history.pushState({}, '', href);
+        const page = href.startsWith('/') ? href.substring(1) : 'index';
+        document.getElementById('index-container').innerHTML = '';
+        
+        if (page === 'index') {
+          const container = document.createElement('div');
+          container.className = "flex flex-col flex-1 min-h-0";
+          container.innerHTML = `
+            <div class="flex items-start justify-between shrink-0">
+              <div>
+                <h2 class="page-title">Analytics Dashboard</h2>
+                <p class="page-sub">Portfolio-wide performance and insights</p>
+              </div>
+            </div>
+            <div class="flex-1 min-h-0 overflow-y-auto mt-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                <div class="kpi-card border-t-pomp-blue">
+                  <p class="text-gray-500 text-xs uppercase">Total Properties</p>
+                  <p class="text-xl font-bold text-pomp-navy">12</p>
+                  <p class="text-xs text-green-600 mt-1">+2 from last month</p>
+                </div>
+                <div class="kpi-card border-t-green-500">
+                  <p class="text-gray-500 text-xs uppercase">Monthly Income</p>
+                  <p class="text-xl font-bold text-green-600">R45,230</p>
+                  <p class="text-xs text-green-600 mt-1">+12% from last month</p>
+                </div>
+                <div class="kpi-card border-t-red-500">
+                  <p class="text-gray-500 text-xs uppercase">Monthly Expenses</p>
+                  <p class="text-xl font-bold text-red-600">R28,940</p>
+                  <p class="text-xs text-red-600 mt-1">+5% from last month</p>
+                </div>
+                <div class="kpi-card border-t-pomp-blue">
+                  <p class="text-gray-500 text-xs uppercase">Net Profit</p>
+                  <p class="text-xl font-bold text-pomp-blue">R16,290</p>
+                  <p class="text-xs text-green-600 mt-1">+18% from last month</p>
+                </div>
+              </div>
+            </div>
+          `;
+          document.getElementById('index-container').appendChild(container);
+        }
+      });
+    });
+  </script>
 </body>
 </html>

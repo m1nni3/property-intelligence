@@ -18,6 +18,9 @@ export function renderSidebar(currentPage) {
       heading: "Financial",
       links: [
         { href: "invoices", label: "Invoices", icon: "fa-solid fa-file-invoice-dollar", page: "invoices" },
+        { href: "finances", label: "Finances", icon: "fa-solid fa-chart-pie", page: "finances" },
+        { href: "petty-cash", label: "Petty Cash", icon: "fa-solid fa-wallet", page: "petty-cash" },
+        { href: "debrief", label: "Debrief", icon: "fa-solid fa-file-alt", page: "debrief" },
       ],
     },
     {
@@ -25,6 +28,14 @@ export function renderSidebar(currentPage) {
       links: [
         { href: "maintenance", label: "Maintenance", icon: "fa-solid fa-wrench", page: "maintenance" },
         { href: "documents", label: "Documents", icon: "fa-solid fa-file-lines", page: "documents" },
+        { href: "portals", label: "Portals", icon: "fa-solid fa-globe", page: "portals" },
+      ],
+    },
+    {
+      heading: "Management",
+      links: [
+        { href: "tasks", label: "Tasks", icon: "fa-solid fa-check-square", page: "tasks" },
+        { href: "governance", label: "Governance", icon: "fa-solid fa-shield-check", page: "governance" },
       ],
     },
     {

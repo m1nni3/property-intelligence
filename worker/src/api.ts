@@ -1,4 +1,4 @@
-import { json, error, uuid, notFound } from "./utils";
+import { json, error, uuid, notFound, prepare } from "./utils";
 import type { Env } from "./index";
 
 export async function handleApiRequest(request: Request, env: Env): Promise<Response> {
@@ -23,7 +23,9 @@ async function routeEntities(
   request: Request,
   env: Env,
 ): Promise<Response> {
-  const match = path.match(/^\/(properties|suppliers|contacts|invoices|maintenance|documents|data-sources)(?:\/([^/]+))?(?:\/([^/]+))?$/);
+  const match = path.match(
+    /^\/(properties|suppliers|contacts|invoices|maintenance|documents|data-sources|pl|pl-monthly|pl-entries|petty-cash|tasks)(?:\/([^/]+))?(?:\/([^/]+))?$/,
+  );
 
   if (!match) {
     return notFound(`Unknown route: ${path}`);
@@ -34,12 +36,58 @@ async function routeEntities(
   const sub = match[3];
 
   if (!id) {
+    if (entity === "pl") {
+      if (method === "GET") return listPL(env, request);
+      if (method === "POST") return createPL(request, env);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "pl-monthly") {
+      if (method === "GET") return listPLMonthly(env, request);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "pl-entries") {
+      if (method === "GET") return listPLEntries(env, request);
+      if (method === "POST") return createPLEntry(request, env);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "petty-cash") {
+      if (method === "GET") return listPettyCash(env, request);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "tasks") {
+      if (method === "GET") return listTasks(env, request);
+      if (method === "POST") return createTask(request, env);
+      return error("Method not allowed", 405);
+    }
     if (method === "GET") return listEntities(entity, env);
     if (method === "POST") return createEntity(entity, request, env);
     return error("Method not allowed", 405);
   }
 
   if (!sub) {
+    if (entity === "pl") {
+      if (method === "PUT") return updatePL(id, request, env);
+      if (method === "DELETE") return deletePL(id, env);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "pl-monthly") {
+      if (method === "PUT") return updatePLMonthly(id, request, env);
+      if (method === "DELETE") return deletePLMonthly(id, env);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "pl-entries") {
+      if (method === "DELETE") return deletePLEntry(id, env);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "petty-cash") {
+      if (sub) return error("Method not allowed", 405);
+      return error("Method not allowed", 405);
+    }
+    if (entity === "tasks") {
+      if (method === "PATCH") return updateTask(id, request, env);
+      if (method === "DELETE") return deleteTask(id, env);
+      return error("Method not allowed", 405);
+    }
     if (method === "GET") return getEntity(entity, id, env);
     if (method === "PATCH") return updateEntity(entity, id, request, env);
     if (method === "DELETE") return deleteEntity(entity, id, env);

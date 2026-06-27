@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Intel - Portals</title>
+  <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <main class="main-wrapper">
+    <div class="sidebar-container">
+      <div id="sidebar"></div>
+    </div>
+    <div class="content-area">
+      <div id="portals-container"></div>
+    </div>
+  </main>
+  
+  <script type="module">
+    import { renderSidebar } from "./components/sidebar.js";
+    import { renderPortals } from "./components/portals.js";
+    
+    const currentPath = window.location.pathname;
+    const pageName = currentPath.startsWith('/portals') ? 'portals' : 'index';
+    
+    document.getElementById('sidebar').innerHTML = renderSidebar(pageName);
+    document.getElementById('portals-container').appendChild(renderPortals());
+    
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        window.history.pushState({}, '', href);
+        const page = href.startsWith('/') ? href.substring(1) : 'index';
+        document.getElementById('portals-container').innerHTML = '';
+        
+        if (page === 'portals') {
+          document.getElementById('portals-container').appendChild(renderPortals());
+        }
+      });
+    });
+  </script>
+</body>
+</html>
