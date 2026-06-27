@@ -1,0 +1,91 @@
+
+# ─────────────────────────────────────────────────────────────
+# Property Intelligence – Cloudflare Worker Bindings
+# Generated: 2026-06-27
+# ─────────────────────────────────────────────────────────────
+
+name = "property-intelligence"
+main = "src/index.ts"
+compatibility_date = "2026-06-27"
+
+# ─────────────────────────────────────────────────────────────
+# D1 – Application Database (KV-backed tables + audit)
+# Tables: properties, contacts, property_contacts, property_files,
+#         property_details, bonds, insurance_policies, units,
+#         work_orders, valuation_history, property_history, audit_log
+# ─────────────────────────────────────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "property-intelligence-db"
+database_id = "4ea83d84-1ae6-4549-88d2-bde1e1c5af4d"
+
+# ─────────────────────────────────────────────────────────────
+# D1 – Finance Database (Hyperdrive-fronted ledger tables)
+# Tables: bank_ledger, levy_ledger, municipality_ledger,
+#         rental_ledger, reconciliation
+# Note: In production these are accessed via HYPERDRIVE_FINANCE.
+#       This D1 binding is for local dev / migration tooling only.
+# ─────────────────────────────────────────────────────────────
+[[d1_databases]]
+binding = "DB_FINANCE"
+database_name = "property-intelligence-finance"
+database_id = "7356aabe-ffe5-4e33-9ced-4ccd70ce07f4"
+
+# ─────────────────────────────────────────────────────────────
+# KV – Application cache / state
+# Caches: properties, contacts, property_contacts, property_files,
+#         property_details, bonds, insurance_policies, units,
+#         work_orders, valuation_history, property_history
+# ─────────────────────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "PROP_KV"
+id = "f98669e09ccf420aa8f148624e8d34bd"
+preview_id = "3b60360f21ff4193b0af89c5cf99fbcc"
+
+# ─────────────────────────────────────────────────────────────
+# Hyperdrive – Financial / transactional tables (PostgreSQL)
+# Tables: bank_ledger, levy_ledger, municipality_ledger,
+#         rental_ledger, reconciliation
+#
+# STATUS: Pending provisioning.
+# Run once your PostgreSQL connection string is ready:
+#
+#   npx wrangler hyperdrive create property-intelligence-finance \
+#     --connection-string="postgresql://user:pass@host:5432/dbname" \
+#     --caching-disabled
+#
+# Then replace <HYPERDRIVE_ID_HERE> with the returned ID.
+# ─────────────────────────────────────────────────────────────
+[[hyperdrive]]
+binding = "HYPERDRIVE_FINANCE"
+id = "<HYPERDRIVE_ID_HERE>"
+
+# ─────────────────────────────────────────────────────────────
+# Environment variables
+# ─────────────────────────────────────────────────────────────
+[vars]
+ENVIRONMENT = "production"
+ARCHIVE_ADMIN_ONLY = "true"
+
+# ─────────────────────────────────────────────────────────────
+# Local dev overrides
+# ─────────────────────────────────────────────────────────────
+[env.dev]
+[env.dev.vars]
+ENVIRONMENT = "development"
+ARCHIVE_ADMIN_ONLY = "false"
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "property-intelligence-db"
+database_id = "4ea83d84-1ae6-4549-88d2-bde1e1c5af4d"
+
+[[env.dev.d1_databases]]
+binding = "DB_FINANCE"
+database_name = "property-intelligence-finance"
+database_id = "7356aabe-ffe5-4e33-9ced-4ccd70ce07f4"
+
+[[env.dev.kv_namespaces]]
+binding = "PROP_KV"
+id = "f98669e09ccf420aa8f148624e8d34bd"
+preview_id = "3b60360f21ff4193b0af89c5cf99fbcc"
