@@ -4,7 +4,6 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [tailwindcss()],
   root: ".",
-  publicDir: "public",
   build: {
     outDir: "dist",
     emptyOutDir: true,
@@ -18,6 +17,12 @@ export default defineConfig({
         suppliers: "production/suppliers.html",
         documents: "production/documents.html",
         "data-sources": "production/data-sources.html",
+        finances: "production/finances.html",
+        debrief: "production/debrief.html",
+        governance: "production/governance.html",
+        "petty-cash": "production/petty-cash.html",
+        portals: "production/portals.html",
+        tasks: "production/tasks.html",
       },
     },
   },

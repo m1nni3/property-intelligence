@@ -2,18 +2,18 @@
   "name": "property-intelligence",
   "version": "0.1.0",
   "type": "module",
-  "description": "Property Intelligence Platform — Node API + SQLite + Vite frontend (Cloudflare Workers/D1/R2 for production)",
+  "description": "Property Intelligence Platform — Vite frontend + Cloudflare Workers/D1/R2 backend",
   "scripts": {
     "dev": "concurrently -k -n web,api -c cyan,magenta \"vite --clearScreen false\" \"node server/index.js\"",
     "dev:api": "node server/index.js",
     "dev:web": "vite --clearScreen false",
-    "build": "rm -rf dist && mkdir -p dist/src/components dist/src/pages && npx @tailwindcss/cli -i src/style.css -o dist/src/style.css && cp production/*.html dist/ && cp src/api.js dist/src/ && cp src/components/*.js dist/src/components/ && cp src/pages/*.js dist/src/pages/",
+    "build": "vite build",
     "deploy": "npm run build && wrangler deploy",
     "db:init": "node server/init-db.js",
-    "lint": "eslint src/ server/",
-    "lint:fix": "eslint src/ server/ --fix",
-    "format": "prettier --write src/ server/",
-    "format:check": "prettier --check src/ server/",
+    "lint": "eslint src/ worker/src/",
+    "lint:fix": "eslint src/ worker/src/ --fix",
+    "format": "prettier --write src/ worker/src/",
+    "format:check": "prettier --check src/ worker/src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -37,8 +37,6 @@
     "wrangler": "^4.105.0"
   },
   "dependencies": {
-    "pdf-parse": "^2.4.5",
-    "tailwindcss": "^4.3.0",
-    "tesseract.js": "^7.0.0"
+    "tailwindcss": "^4.3.0"
   }
 }
