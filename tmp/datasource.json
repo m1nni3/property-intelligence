@@ -1,0 +1,1 @@
+{"id":"8324a258-7415-4186-962c-838062b4f5d1","name":"City of Joburg Municipal Portal","source_type":"municipal","connector_type":"http","base_url":"https://api.joburg.gov.za/v1","config":"{\"max_pages\":3}","is_active":1,"last_sync_at":null,"created_at":"2026-06-26 22:48:12","updated_at":"2026-06-26 22:48:12"}

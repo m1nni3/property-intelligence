@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Sources — Property Intelligence</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="min-h-screen flex">
+  <div id="sidebar"></div>
+  <main class="flex-1 ml-60 p-6 lg:p-8 min-h-screen">
+    <div class="app-page-title">
+      <div class="page-title-wrapper">
+        <div class="page-title-heading">
+          <div class="page-title-icon"><i class="fa-solid fa-plug"></i></div>
+          <div>
+            <div class="page-title-text">Data Sources</div>
+            <div class="page-title-subheading">Configure and manage data integrations</div>
+          </div>
+        </div>
+        <div class="page-title-actions">
+          <button class="btn btn-primary btn-shadow" id="btn-add">
+            <i class="fa-solid fa-plus"></i>Add Source
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="main-card mb-6">
+      <div class="card-header">
+        <span><i class="fa-solid fa-database text-indigo-400 mr-2"></i>Data Sources</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table-borderless table-striped table-hover">
+          <thead><tr>
+            <th>Name</th><th>Type</th><th>Status</th><th>Last Sync</th><th class="text-right">Actions</th>
+          </tr></thead>
+          <tbody id="src-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="main-card">
+      <div class="card-header">
+        <span><i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-2"></i>Sync History</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table-borderless table-striped table-hover">
+          <thead><tr>
+            <th>Source</th><th>Status</th><th>Processed</th><th>Created</th><th>Updated</th><th>Failed</th><th>Finished</th>
+          </tr></thead>
+          <tbody id="run-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/src/pages/data-sources.js"></script>
+</body>
+</html>

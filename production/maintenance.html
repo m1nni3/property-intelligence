@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maintenance — Property Intelligence</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="min-h-screen flex">
+  <div id="sidebar"></div>
+  <main class="flex-1 ml-60 p-6 lg:p-8 min-h-screen">
+    <div class="app-page-title">
+      <div class="page-title-wrapper">
+        <div class="page-title-heading">
+          <div class="page-title-icon"><i class="fa-solid fa-wrench"></i></div>
+          <div>
+            <div class="page-title-text">Maintenance</div>
+            <div class="page-title-subheading">Track and manage maintenance requests</div>
+          </div>
+        </div>
+        <div class="page-title-actions">
+          <button class="btn btn-primary btn-shadow" id="btn-add">
+            <i class="fa-solid fa-plus"></i>Add Task
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="main-card">
+      <div class="card-header">
+        <span><i class="fa-solid fa-list text-indigo-400 mr-2"></i>All Tasks</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table-borderless table-striped table-hover">
+          <thead><tr>
+            <th>Property</th><th>Title</th><th>Status</th><th>Priority</th><th>Cost Est.</th><th class="text-right">Actions</th>
+          </tr></thead>
+          <tbody id="maint-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/src/pages/maintenance.js"></script>
+</body>
+</html>

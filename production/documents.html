@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documents — Property Intelligence</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="min-h-screen flex">
+  <div id="sidebar"></div>
+  <main class="flex-1 ml-60 p-6 lg:p-8 min-h-screen">
+    <div class="app-page-title">
+      <div class="page-title-wrapper">
+        <div class="page-title-heading">
+          <div class="page-title-icon"><i class="fa-solid fa-file-lines"></i></div>
+          <div>
+            <div class="page-title-text">Documents</div>
+            <div class="page-title-subheading">Upload and manage documents</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="main-card mb-6">
+      <div class="card-header">
+        <span><i class="fa-solid fa-upload text-indigo-400 mr-2"></i>Upload Document</span>
+      </div>
+      <div class="card-body">
+        <form id="upload-form" class="flex flex-wrap items-end gap-4">
+          <div class="form-group mb-0"><label>File</label><input class="input-field" id="file-input" type="file" /></div>
+          <div class="form-group mb-0"><label>Type</label>
+            <select class="input-field" id="doc-type">
+              <option value="">Auto-detect</option>
+              <option value="statement">Statement</option>
+              <option value="invoice">Invoice</option>
+              <option value="lease">Lease</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group mb-0"><label>Property ID</label><input class="input-field" id="prop-id" placeholder="Optional" /></div>
+          <button class="btn btn-primary btn-shadow"><i class="fa-solid fa-cloud-arrow-up"></i>Upload</button>
+        </form>
+      </div>
+    </div>
+    <div class="main-card mb-6">
+      <div class="card-header">
+        <span><i class="fa-solid fa-list text-indigo-400 mr-2"></i>All Documents</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table-borderless table-striped table-hover">
+          <thead><tr>
+            <th>Filename</th><th>Type</th><th>Status</th><th>Pages</th><th class="text-right">Actions</th>
+          </tr></thead>
+          <tbody id="doc-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="main-card">
+      <div class="card-header">
+        <span><i class="fa-solid fa-file-invoice text-indigo-400 mr-2"></i>Extracted Statements</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table-borderless table-striped table-hover">
+          <thead><tr>
+            <th>Type</th><th>Account</th><th>Period</th><th>Total Due</th><th>Status</th>
+          </tr></thead>
+          <tbody id="stmt-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/src/pages/documents.js"></script>
+</body>
+</html>
