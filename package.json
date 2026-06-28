@@ -8,15 +8,15 @@
     "dev:api": "node server/index.js",
     "dev:web": "vite --clearScreen false",
     "build": "vite build",
-    "deploy": "npm run build && wrangler deploy",
-    "db:init": "node server/init-db.js",
-    "lint": "eslint src/ worker/src/",
-    "lint:fix": "eslint src/ worker/src/ --fix",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "format": "prettier --write src/ worker/src/",
     "format:check": "prettier --check src/ worker/src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "predeploy": "npm run lint && npm run typecheck && npm run test",
+    "deploy": "npm run predeploy && npm run build && wrangler deploy"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.16.0",

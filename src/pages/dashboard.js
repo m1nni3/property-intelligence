@@ -28,53 +28,103 @@ document.getElementById("kpi-grid").innerHTML = kpis.map((k, i) => `
   </div>
 `).join("");
 
-async function loadKPIs() {
-  try {
-    const [props, contacts, invoices, maint, suppliers, docs, sources] = await Promise.all([
-      get("/properties"), get("/contacts"), get("/invoices"),
-      get("/maintenance"), get("/suppliers"), get("/documents"), get("/data-sources"),
-    ]);
-    document.getElementById("kpi-properties").textContent = props.length;
-    document.getElementById("kpi-contacts").textContent = contacts.length;
-    document.getElementById("kpi-invoices").textContent = invoices.length;
-    document.getElementById("kpi-maintenance").textContent = maint.filter((m) => m.status !== "completed").length;
-    document.getElementById("kpi-suppliers").textContent = suppliers.length;
-    document.getElementById("kpi-documents").textContent = docs.length;
-    document.getElementById("kpi-sources").textContent = sources.length;
-
-    get("/sync-runs").then((runs) => {
-      document.getElementById("kpi-syncs").textContent = runs.length;
-    }).catch(() => {});
-
-    let activity = "";
-    const recent = [...props.slice(0, 3), ...invoices.slice(0, 2), ...maint.slice(0, 2)]
-      .sort(() => Math.random() - 0.5).slice(0, 5);
-    if (recent.length === 0) {
-      activity = '<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-inbox"></i></div><p class="text-sm">No recent activity</p></div>';
-    } else {
-      activity = recent.map((r) => {
-        const name = r.name || r.title || r.description || "Item";
-        const type = r.property_id ? "Property" : r.amount ? "Invoice" : "Maintenance";
-        const status = r.status || "—";
-        return `<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-slate-700/30 transition-colors">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold"><i class="${type === 'Property' ? 'fa-solid fa-building' : type === 'Invoice' ? 'fa-solid fa-file-invoice-dollar' : 'fa-solid fa-wrench'}"></i></div>
-            <div><div class="text-sm font-medium text-slate-200">${escape(name)}</div><div class="text-xs text-slate-500 mt-0.5">${type} · ${status}</div></div>
-          </div>
-        </div>`;
-      }).join("");
-    }
-    document.getElementById("recent-activity").innerHTML = activity;
-  } catch (e) {
-    kpis.forEach((k) => { const el = document.getElementById(k.id); if (el) el.textContent = "—"; });
-    document.getElementById("recent-activity").innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-triangle-exclamation"></i></div><p class="text-sm">Could not load data</p></div>';
-  }
-}
-
 function escape(str) {
   const d = document.createElement("div");
   d.textContent = str ?? "";
   return d.innerHTML;
+}
+
+function setKpi(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+async function loadKPIs() {
+  const results = await Promise.allSettled([
+    get("/properties"),
+    get("/contacts"),
+    get("/invoices"),
+    get("/maintenance"),
+    get("/suppliers"),
+    get("/documents"),
+    get("/data-sources"),
+  ]);
+
+  const [propsResult, contactsResult, invoicesResult, maintResult, suppliersResult, docsResult, sourcesResult] = results;
+
+  if (propsResult.status === "fulfilled") {
+    setKpi("kpi-properties", propsResult.value.length || propsResult.value.data?.length || 0);
+  } else {
+    setKpi("kpi-properties", "✕");
+    console.error("Failed to load properties:", propsResult.reason);
+  }
+
+  if (contactsResult.status === "fulfilled") {
+    setKpi("kpi-contacts", contactsResult.value.length || contactsResult.value.data?.length || 0);
+  } else {
+    setKpi("kpi-contacts", "✕");
+  }
+
+  if (invoicesResult.status === "fulfilled") {
+    setKpi("kpi-invoices", invoicesResult.value.length || invoicesResult.value.data?.length || 0);
+  } else {
+    setKpi("kpi-invoices", "✕");
+  }
+
+  if (maintResult.status === "fulfilled") {
+    const data = maintResult.value.data || maintResult.value;
+    const open = Array.isArray(data) ? data.filter((m) => m.status !== "completed").length : 0;
+    setKpi("kpi-maintenance", open);
+  } else {
+    setKpi("kpi-maintenance", "✕");
+  }
+
+  if (suppliersResult.status === "fulfilled") {
+    setKpi("kpi-suppliers", suppliersResult.value.length || suppliersResult.value.data?.length || 0);
+  } else {
+    setKpi("kpi-suppliers", "✕");
+  }
+
+  if (docsResult.status === "fulfilled") {
+    setKpi("kpi-documents", docsResult.value.length || docsResult.value.data?.length || 0);
+  } else {
+    setKpi("kpi-documents", "✕");
+  }
+
+  if (sourcesResult.status === "fulfilled") {
+    setKpi("kpi-sources", sourcesResult.value.length || sourcesResult.value.data?.length || 0);
+  } else {
+    setKpi("kpi-sources", "✕");
+  }
+
+  get("/sync-runs").then((runs) => {
+    setKpi("kpi-syncs", runs.length || runs.data?.length || 0);
+  }).catch(() => {});
+
+  let activity;
+  const propsData = propsResult.status === "fulfilled" ? (propsResult.value.data || propsResult.value) : [];
+  const invoicesData = invoicesResult.status === "fulfilled" ? (invoicesResult.value.data || invoicesResult.value) : [];
+  const maintData = maintResult.status === "fulfilled" ? (maintResult.value.data || maintResult.value) : [];
+
+  const recent = [...propsData.slice(0, 3), ...invoicesData.slice(0, 2), ...maintData.slice(0, 2)]
+    .sort(() => Math.random() - 0.5).slice(0, 5);
+
+  if (recent.length === 0) {
+    activity = '<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-inbox"></i></div><p class="text-sm">No recent activity</p></div>';
+  } else {
+    activity = recent.map((r) => {
+      const name = r.name || r.title || r.description || "Item";
+      const type = r.property_id ? "Property" : r.amount ? "Invoice" : "Maintenance";
+      const status = r.status || "—";
+      return `<div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold"><i class="${type === 'Property' ? 'fa-solid fa-building' : type === 'Invoice' ? 'fa-solid fa-file-invoice-dollar' : 'fa-solid fa-wrench'}"></i></div>
+          <div><div class="text-sm font-medium text-slate-200">${escape(name)}</div><div class="text-xs text-slate-500 mt-0.5">${type} · ${status}</div></div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("recent-activity").innerHTML = activity;
 }
 
 loadKPIs();
