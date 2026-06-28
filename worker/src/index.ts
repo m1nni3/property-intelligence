@@ -2,6 +2,14 @@ import { handleApiRequest } from "./api";
 import { handleAuthRequest } from "./auth";
 import { addCorsHeaders, addSecurityHeaders, logRequest, rateLimit } from "./utils";
 
+export interface User {
+  id: string;
+  email: string;
+  role: "admin" | "user" | "viewer";
+  iat: number;
+  exp: number;
+}
+
 export interface Env {
   DB: D1Database;
   FINANCE_DB: D1Database;
@@ -47,4 +55,4 @@ export default {
 
     return response;
   },
-};
+} satisfies ExportedHandler<Env>;

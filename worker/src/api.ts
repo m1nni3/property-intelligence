@@ -1,6 +1,6 @@
 import { json, error, uuid, notFound, parsePagination } from "./utils";
-import { verifyJWT } from "./auth";
-import type { Env, User } from "./index";
+import { verifyJWT, type User } from "./auth";
+import type { Env } from "./index";
 
 export async function handleApiRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
@@ -214,12 +214,12 @@ async function listEntities(entity: string, env: Env, request?: Request): Promis
   params.push(limit, offset);
 
   const rows = await env.DB.prepare(query).bind(...params).all();
-  
+
   // Get total count for pagination
   let countQuery = `SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL`;
+  const filterParams: unknown[] = [];
   if (url) {
     const filters: string[] = [];
-    const filterParams: unknown[] = [];
     for (const [key, value] of url.searchParams.entries()) {
       if (validColumns && validColumns.includes(key)) {
         filters.push(`${key} = ?`);
@@ -228,15 +228,10 @@ async function listEntities(entity: string, env: Env, request?: Request): Promis
     }
     if (filters.length > 0) {
       countQuery += ` AND ${filters.join(" AND ")}`;
-      const countResult = await env.DB.prepare(countQuery).bind(...filterParams).first() as { count: number };
-      return json({
-        data: rows.results,
-        pagination: { page, limit, total: countResult.count, pages: Math.ceil(countResult.count / limit) },
-      });
     }
   }
 
-  const countResult = await env.DB.prepare(countQuery).first() as { count: number };
+  const countResult = (await env.DB.prepare(countQuery).bind(...filterParams).first()) as { count: number };
   return json({
     data: rows.results,
     pagination: { page, limit, total: countResult.count, pages: Math.ceil(countResult.count / limit) },
@@ -278,7 +273,9 @@ async function createEntity(entity: string, request: Request, env: Env, user: Us
     // Log to audit trail
     await env.DB.prepare(
       `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
-    ).bind(uuid(), entity, id, "CREATE", user.id, now()).run();
+    )
+      .bind(uuid(), entity, id, "CREATE", user.id, now())
+      .run();
 
     const row = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
     return json(row, 201);
@@ -311,7 +308,9 @@ async function updateEntity(entity: string, id: string, request: Request, env: E
     // Log to audit trail
     await env.DB.prepare(
       `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
-    ).bind(uuid(), entity, id, "UPDATE", user.id, now()).run();
+    )
+      .bind(uuid(), entity, id, "UPDATE", user.id, now())
+      .run();
 
     const row = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`).bind(id).first();
     return json(row);
@@ -332,7 +331,9 @@ async function deleteEntity(entity: string, id: string, env: Env, user: User): P
   // Log to audit trail
   await env.DB.prepare(
     `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
-  ).bind(uuid(), entity, id, "DELETE", user.id, now()).run();
+  )
+    .bind(uuid(), entity, id, "DELETE", user.id, now())
+    .run();
 
   return json({ deleted: true });
 }
@@ -347,18 +348,18 @@ async function listPropertyContacts(id: string, env: Env): Promise<Response> {
 }
 
 async function addPropertyContact(id: string, request: Request, env: Env, user: User): Promise<Response> {
-  const body = await request.json<{ contact_id: string; role: string }>();
+  const body = (await request.json()) as { contact_id: string; role: string };
   if (!body.contact_id || !body.role) return error("contact_id and role are required");
 
-  await env.DB.prepare(
-    "INSERT INTO property_contacts (property_id, contact_id, role) VALUES (?, ?, ?)",
-  )
+  await env.DB.prepare("INSERT INTO property_contacts (property_id, contact_id, role) VALUES (?, ?, ?)")
     .bind(id, body.contact_id, body.role)
     .run();
 
   await env.DB.prepare(
     `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
-  ).bind(uuid(), "property_contacts", `${id}:${body.contact_id}`, "CREATE", user.id, now()).run();
+  )
+    .bind(uuid(), "property_contacts", `${id}:${body.contact_id}`, "CREATE", user.id, now())
+    .run();
 
   return json({ created: true }, 201);
 }
@@ -389,7 +390,9 @@ async function uploadPropertyFile(id: string, request: Request, env: Env, user: 
 
   await env.DB.prepare(
     `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
-  ).bind(uuid(), "property_files", fileId, "CREATE", user.id, now()).run();
+  )
+    .bind(uuid(), "property_files", fileId, "CREATE", user.id, now())
+    .run();
 
   return json({ id: fileId, r2_key: key, filename: file.name }, 201);
 }

@@ -1,26 +1,37 @@
 import js from "@eslint/js";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 import globals from "globals";
 
 export default [
-  js.configs.recommended,
-  {
-    ignores: ["dist/", "node_modules/", ".wrangler/", "worker-configuration.d.ts", "worker/**/*.ts"],
-  },
   {
     files: ["src/**/*.js"],
     languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.es2021,
-      },
+      sourceType: "module",
+      globals: globals.browser,
     },
     rules: {
+      ...js.configs.recommended.rules,
+      "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     },
   },
   {
-    rules: {
-      "no-console": "off",
+    files: ["worker/src/**/*.ts"],
+    languageOptions: {
+      parser: tsParser,
+      sourceType: "module",
+      globals: globals.worker,
     },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+    },
+  },
+  {
+    ignores: ["dist/", "node_modules/", "*.config.js"],
   },
 ];

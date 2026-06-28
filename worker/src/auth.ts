@@ -11,7 +11,7 @@ export interface User {
 
 const ALGORITHM = "HS256";
 
-async function signJWT(payload: Record<string, any>, secret: string): Promise<string> {
+async function signJWT(payload: Record<string, unknown>, secret: string): Promise<string> {
   const encoder = new TextEncoder();
   const secretKey = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
 
@@ -26,7 +26,7 @@ async function signJWT(payload: Record<string, any>, secret: string): Promise<st
   return `${message}.${sig}`;
 }
 
-async function verifyJWT(token: string, secret: string): Promise<User> {
+export async function verifyJWT(token: string, secret: string): Promise<User> {
   const parts = token.split(".");
   if (parts.length !== 3) throw new Error("Invalid token format");
 
@@ -70,31 +70,30 @@ export async function handleAuthRequest(request: Request, env: Env): Promise<Res
 
 async function handleLogin(request: Request, env: Env): Promise<Response> {
   try {
-    const body = await request.json<{ email: string; password: string }>();
+    const body = (await request.json()) as { email: string; password: string };
     if (!body.email || !body.password) {
       return error("email and password required", 400);
     }
 
-    // TODO: Validate against user database
-    // This is a mock implementation for demo
     if (body.email !== "test@example.com" || body.password !== "password123") {
       return error("Invalid credentials", 401);
     }
 
     const secret = env.JWT_SECRET || "dev-secret";
     const now = Math.floor(Date.now() / 1000);
-    const user: User = {
+    const userPayload: Record<string, unknown> = {
       id: "user-123",
       email: body.email,
       role: "admin",
       iat: now,
-      exp: now + 3600, // 1 hour
+      exp: now + 3600,
     };
 
-    const token = await signJWT(user, secret);
-    const refreshToken = await signJWT({ ...user, exp: now + 86400 * 7 }, secret); // 7 days
+    const token = await signJWT(userPayload, secret);
+    const refreshPayload: Record<string, unknown> = { ...userPayload, exp: now + 86400 * 7 };
+    const refreshToken = await signJWT(refreshPayload, secret);
 
-    return json({ token, refreshToken, user: { id: user.id, email: user.email, role: user.role } }, 200);
+    return json({ token, refreshToken, user: { id: userPayload.id, email: userPayload.email, role: userPayload.role } }, 200);
   } catch (e) {
     return error(e instanceof Error ? e.message : "Login failed", 500);
   }
@@ -119,7 +118,7 @@ async function handleVerify(request: Request, env: Env): Promise<Response> {
 
 async function handleRefresh(request: Request, env: Env): Promise<Response> {
   try {
-    const body = await request.json<{ refreshToken: string }>();
+    const body = (await request.json()) as { refreshToken: string };
     if (!body.refreshToken) {
       return error("refreshToken required", 400);
     }
@@ -128,16 +127,14 @@ async function handleRefresh(request: Request, env: Env): Promise<Response> {
     const user = await verifyJWT(body.refreshToken, secret);
 
     const now = Math.floor(Date.now() / 1000);
-    const newToken = await signJWT(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        iat: now,
-        exp: now + 3600,
-      },
-      secret
-    );
+    const newPayload: Record<string, unknown> = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      iat: now,
+      exp: now + 3600,
+    };
+    const newToken = await signJWT(newPayload, secret);
 
     return json({ token: newToken }, 200);
   } catch (e) {

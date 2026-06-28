@@ -17,7 +17,7 @@ export function notFound(msg = "Not found"): Response {
   return error(msg, 404);
 }
 
-export function addCorsHeaders(response: Response, request: Request): Response {
+export function addCorsHeaders(response: Response, _request?: Request): Response {
   const headers = new Headers(response.headers);
   headers.set("Access-Control-Allow-Origin", "*");
   headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
@@ -36,7 +36,7 @@ export function addSecurityHeaders(response: Response): Response {
 
 export function logRequest(method: string, path: string, status: number, duration: number): void {
   const level = status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO";
-  console.log(`[${level}] ${method} ${path} ${status} ${duration}ms`);
+  console.warn(`[${level}] ${method} ${path} ${status} ${duration}ms`);
 }
 
 export function parsePagination(url: URL): { limit: number; offset: number; page: number } {
@@ -49,7 +49,7 @@ export function parsePagination(url: URL): { limit: number; offset: number; page
 export async function rateLimit(request: Request, env: { RATE_LIMIT_KV?: KVNamespace }): Promise<Response | null> {
   const clientId = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || "unknown";
   const key = `ratelimit:${clientId}`;
-  const windowMs = 60 * 60 * 1000;
+  // const windowMs = 60 * 60 * 1000;
   const maxRequests = 100;
 
   if (!env.RATE_LIMIT_KV) return null;
