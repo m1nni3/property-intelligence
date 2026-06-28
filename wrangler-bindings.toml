@@ -39,9 +39,7 @@ database_id = "7356aabe-ffe5-4e33-9ced-4ccd70ce07f4"
 # ─────────────────────────────────────────────────────────────
 [[kv_namespaces]]
 binding = "PROP_KV"
-id = "f98669e09ccf420aa8f148624e8d34bd"
-preview_id = "3b60360f21ff4193b0af89c5cf99fbcc"
-
+id": "c26f94acabe345e29c9cc6a7742613b2"
 # ─────────────────────────────────────────────────────────────
 # Hyperdrive – Financial / transactional tables (PostgreSQL)
 # Tables: bank_ledger, levy_ledger, municipality_ledger,
@@ -87,5 +85,4 @@ database_id = "7356aabe-ffe5-4e33-9ced-4ccd70ce07f4"
 
 [[env.dev.kv_namespaces]]
 binding = "PROP_KV"
-id = "f98669e09ccf420aa8f148624e8d34bd"
-preview_id = "3b60360f21ff4193b0af89c5cf99fbcc"
+id": "c26f94acabe345e29c9cc6a7742613b2"
