@@ -1,72 +1,184 @@
-export function json(data: unknown, status = 200, headers?: Record<string, string>): Response {
+export interface Env {
+  RATE_LIMIT_KV?: KVNamespace;
+}
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+const RATE_LIMIT_WINDOW = 60 * 60; // seconds
+const RATE_LIMIT_MAX_REQUESTS = 100;
+
+export function json(
+  data: unknown,
+  status = 200,
+  headers: HeadersInit = {}
+): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json", ...headers },
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      ...headers,
+    },
   });
 }
 
-export function error(msg: string, status = 400, headers?: Record<string, string>): Response {
-  return json({ error: msg }, status, headers);
+export function error(
+  message: string,
+  status = 400,
+  headers: HeadersInit = {}
+): Response {
+  return json({ error: message }, status, headers);
+}
+
+export function notFound(message = "Not found"): Response {
+  return error(message, 404);
 }
 
 export function uuid(): string {
   return crypto.randomUUID();
 }
 
-export function notFound(msg = "Not found"): Response {
-  return error(msg, 404);
+export function options(): Response {
+  return withStandardHeaders(new Response(null, { status: 204 }));
 }
 
-export function addCorsHeaders(response: Response, _request?: Request): Response {
+export function addCorsHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
+
   headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
   headers.set("Access-Control-Max-Age", "86400");
-  return new Response(response.body, { status: response.status, headers });
+
+  return cloneResponse(response, headers);
 }
 
 export function addSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
+
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-Frame-Options", "DENY");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  return new Response(response.body, { status: response.status, headers });
+  headers.set("Cross-Origin-Resource-Policy", "same-origin");
+  headers.set("Permissions-Policy", "geolocation=(), microphone=()");
+  headers.set("X-XSS-Protection", "0");
+
+  return cloneResponse(response, headers);
 }
 
-export function logRequest(method: string, path: string, status: number, duration: number): void {
-  const level = status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO";
-  console.warn(`[${level}] ${method} ${path} ${status} ${duration}ms`);
+export function withStandardHeaders(response: Response): Response {
+  return addSecurityHeaders(addCorsHeaders(response));
 }
 
-export function parsePagination(url: URL): { limit: number; offset: number; page: number } {
-  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
-  const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "20")));
-  const offset = (page - 1) * limit;
-  return { limit, offset, page };
+function cloneResponse(response: Response, headers: Headers): Response {
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
-export async function rateLimit(request: Request, env: { RATE_LIMIT_KV?: KVNamespace }): Promise<Response | null> {
-  const clientId = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || "unknown";
-  const key = `ratelimit:${clientId}`;
-  // const windowMs = 60 * 60 * 1000;
-  const maxRequests = 100;
+export function logRequest(
+  method: string,
+  path: string,
+  status: number,
+  durationMs: number
+): void {
+  const message = `${method} ${path} ${status} ${durationMs}ms`;
 
-  if (!env.RATE_LIMIT_KV) return null;
+  if (status >= 500) {
+    console.error(message);
+  } else if (status >= 400) {
+    console.warn(message);
+  } else {
+    console.info(message);
+  }
+}
 
-  const cached = await env.RATE_LIMIT_KV.get(key);
-  const count = cached ? parseInt(cached) : 0;
+export interface Pagination {
+  page: number;
+  limit: number;
+  offset: number;
+}
 
-  if (count >= maxRequests) {
-    return error(`Rate limit exceeded. Try again later.`, 429, {
-      "Retry-After": "3600",
-      "X-RateLimit-Limit": String(maxRequests),
-      "X-RateLimit-Remaining": "0",
-    });
+export function parsePagination(url: URL): Pagination {
+  const page = clampInteger(
+    url.searchParams.get("page"),
+    DEFAULT_PAGE,
+    DEFAULT_PAGE,
+    Number.MAX_SAFE_INTEGER
+  );
+
+  const limit = clampInteger(
+    url.searchParams.get("limit"),
+    DEFAULT_LIMIT,
+    1,
+    MAX_LIMIT
+  );
+
+  return {
+    page,
+    limit,
+    offset: (page - 1) * limit,
+  };
+}
+
+function clampInteger(
+  value: string | null,
+  fallback: number,
+  min: number,
+  max: number
+): number {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return fallback;
   }
 
-  const newCount = count + 1;
-  await env.RATE_LIMIT_KV.put(key, String(newCount), { expirationTtl: 3600 });
+  return Math.min(max, Math.max(min, Math.floor(number)));
+}
+
+export async function rateLimit(
+  request: Request,
+  env: Env
+): Promise<Response | null> {
+  const kv = env.RATE_LIMIT_KV;
+
+  if (!kv) {
+    return null;
+  }
+
+  const clientId =
+    request.headers.get("CF-Connecting-IP") ||
+    request.headers.get("X-Forwarded-For") ||
+    "unknown";
+
+  const key = `ratelimit:${clientId}`;
+
+  const current =
+    Number(await kv.get(key)) || 0;
+
+  if (current >= RATE_LIMIT_MAX_REQUESTS) {
+    return withStandardHeaders(
+      error("Rate limit exceeded. Try again later.", 429, {
+        "Retry-After": String(RATE_LIMIT_WINDOW),
+        "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+        "X-RateLimit-Remaining": "0",
+      })
+    );
+  }
+
+  const next = current + 1;
+
+  await kv.put(key, String(next), {
+    expirationTtl: RATE_LIMIT_WINDOW,
+  });
 
   return null;
 }
