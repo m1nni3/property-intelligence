@@ -1,5 +1,6 @@
 import { json, error, uuid, notFound, parsePagination } from "./utils";
 import { verifyJWT, type User } from "./auth";
+import { authorizeAction } from "./rbac";
 import type { Env } from "./index";
 
 export async function handleApiRequest(request: Request, env: Env): Promise<Response> {
@@ -9,7 +10,6 @@ export async function handleApiRequest(request: Request, env: Env): Promise<Resp
   const start = Date.now();
 
   try {
-    // Verify JWT token
     const auth = request.headers.get("Authorization");
     if (!auth?.startsWith("Bearer ")) {
       return error("Missing authorization", 401);
@@ -29,7 +29,7 @@ export async function handleApiRequest(request: Request, env: Env): Promise<Resp
     }
 
     const response = await routeEntities(path, method, request, env, user);
-    console.log(`[${method}] ${path} ${response.status} ${Date.now() - start}ms (user: ${user.id})`);
+    console.log(`[${method}] ${path} ${response.status} ${Date.now() - start}ms (user: ${user.id}, role: ${user.role})`);
     return response;
   } catch (e) {
     console.error(`[${method}] ${path} ERROR ${Date.now() - start}ms`, e);
@@ -160,15 +160,35 @@ async function routeEntities(path: string, method: string, request: Request, env
   const sub = match[3];
 
   if (!id) {
-    if (method === "GET") return listEntities(entity, env, request);
-    if (method === "POST") return createEntity(entity, request, env, user);
+    if (method === "GET") {
+      const authErr = authorizeAction(user, entity, "read");
+      if (authErr) return authErr;
+      return listEntities(entity, env, request);
+    }
+    if (method === "POST") {
+      const authErr = authorizeAction(user, entity, "create");
+      if (authErr) return authErr;
+      return createEntity(entity, request, env, user);
+    }
     return error("Method not allowed", 405);
   }
 
   if (!sub) {
-    if (method === "GET") return getEntity(entity, id, env);
-    if (method === "PATCH" || method === "PUT") return updateEntity(entity, id, request, env, user);
-    if (method === "DELETE") return deleteEntity(entity, id, env, user);
+    if (method === "GET") {
+      const authErr = authorizeAction(user, entity, "read");
+      if (authErr) return authErr;
+      return getEntity(entity, id, env);
+    }
+    if (method === "PATCH" || method === "PUT") {
+      const authErr = authorizeAction(user, entity, "update");
+      if (authErr) return authErr;
+      return updateEntity(entity, id, request, env, user);
+    }
+    if (method === "DELETE") {
+      const authErr = authorizeAction(user, entity, "delete");
+      if (authErr) return authErr;
+      return deleteEntity(entity, id, env, user);
+    }
     return error("Method not allowed", 405);
   }
 
@@ -215,7 +235,6 @@ async function listEntities(entity: string, env: Env, request?: Request): Promis
 
   const rows = await env.DB.prepare(query).bind(...params).all();
 
-  // Get total count for pagination
   let countQuery = `SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL`;
   const filterParams: unknown[] = [];
   if (url) {
@@ -270,7 +289,6 @@ async function createEntity(entity: string, request: Request, env: Env, user: Us
 
     await env.DB.prepare(insertSql).bind(...values).run();
 
-    // Log to audit trail
     await env.DB.prepare(
       `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
     )
@@ -305,7 +323,6 @@ async function updateEntity(entity: string, id: string, request: Request, env: E
 
     await env.DB.prepare(updateSql).bind(...values).run();
 
-    // Log to audit trail
     await env.DB.prepare(
       `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
     )
@@ -328,7 +345,6 @@ async function deleteEntity(entity: string, id: string, env: Env, user: User): P
     .bind(now(), now(), user.id, id)
     .run();
 
-  // Log to audit trail
   await env.DB.prepare(
     `INSERT INTO audit_log (id, entity_type, entity_id, action, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)`
   )
