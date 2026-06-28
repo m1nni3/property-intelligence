@@ -12,11 +12,6 @@
       "head_sampling_rate": 1,
       "persist": true,
       "invocation_logs": true
-    },
-    "traces": {
-      "enabled": false,
-      "persist": true,
-      "head_sampling_rate": 1
     }
   },
   "assets": {
@@ -24,7 +19,7 @@
     "binding": "ASSETS",
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/auth/*"]
   },
   "kv_namespaces": [
     {
@@ -56,7 +51,48 @@
       "bucket_name": "property-intelligence-files"
     }
   ],
-  "vars": {
-    "ENVIRONMENT": "production"
+  "env": {
+    "development": {
+      "vars": {
+        "ENVIRONMENT": "development",
+        "JWT_SECRET": "dev-secret-change-in-production"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "property-intelligence-dev",
+          "database_id": "dev-db-id-here",
+          "migrations_dir": "migrations"
+        }
+      ]
+    },
+    "staging": {
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "JWT_SECRET": "staging-secret-change-in-production"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "property-intelligence-staging",
+          "database_id": "staging-db-id-here",
+          "migrations_dir": "migrations"
+        }
+      ]
+    },
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production",
+        "JWT_SECRET": "set-in-cloudflare-dashboard"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "property-intelligence-db",
+          "database_id": "4ea83d84-1ae6-4549-88d2-bde1e1c5af4d",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
   }
 }

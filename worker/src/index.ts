@@ -1,4 +1,5 @@
 import { handleApiRequest } from "./api";
+import { handleAuthRequest } from "./auth";
 import { addCorsHeaders, addSecurityHeaders, logRequest, rateLimit } from "./utils";
 
 export interface Env {
@@ -9,6 +10,7 @@ export interface Env {
   RATE_LIMIT_KV: KVNamespace;
   ASSETS: Fetcher;
   ENVIRONMENT: string;
+  JWT_SECRET: string;
 }
 
 export default {
@@ -29,7 +31,9 @@ export default {
 
     let response: Response;
 
-    if (url.pathname.startsWith("/api/")) {
+    if (url.pathname.startsWith("/auth/")) {
+      response = await handleAuthRequest(request, env);
+    } else if (url.pathname.startsWith("/api/")) {
       response = await handleApiRequest(request, env);
     } else {
       response = await env.ASSETS.fetch(request);
